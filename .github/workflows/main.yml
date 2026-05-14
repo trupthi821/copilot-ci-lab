@@ -12,12 +12,24 @@ jobs:
   test:
     needs: lint
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python 3.x
+        id: setup-python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: ${{ matrix.python-version }}
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ steps.setup-python.outputs.python-version }}-
+            ${{ runner.os }}-pip-
       - name: Install pytest
         run: pip install pytest
       - name: Run pytest
@@ -27,9 +39,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python 3.x
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ steps.setup-python.outputs.python-version }}-
+            ${{ runner.os }}-pip-
       - name: Install flake8
         run: pip install flake8
       - name: Run flake8
